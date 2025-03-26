@@ -3,7 +3,7 @@ import Card from "./shared/Card";
 import Button from "./shared/Button";
 import { useState } from "react";
 import RatingSelect from "./RatingSelect";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import FeedbackContext from "../context/FeedbackContext";
 
 function FeedbackForm() {
@@ -12,7 +12,17 @@ function FeedbackForm() {
   const [message, setMessage] = useState("");
   const [rating, setRating] = useState(7);
 
-  const { addFeedback } = useContext(FeedbackContext);
+  const { addFeedback, feedbackEditState, updateFeedback } =
+    useContext(FeedbackContext);
+
+  // everytime, when the edit button is clicked, the state "feedbackEditState" will be populated with the values of the feedback we want to edit (this change triggers the useEffect hook)
+  useEffect(() => {
+    if (feedbackEditState.edit === true) {
+      setBtnDisabled(false);
+      setText(feedbackEditState.item.text);
+      setRating(feedbackEditState.item.rating);
+    }
+  }, [feedbackEditState]);
 
   const handleTextChange = (e) => {
     const newText = e.target.value;
@@ -38,7 +48,12 @@ function FeedbackForm() {
         rating: rating,
       };
 
-      addFeedback(newFeedback);
+      if (feedbackEditState.edit === true) {
+        updateFeedback(feedbackEditState.item.id, newFeedback);
+      } else {
+        addFeedback(newFeedback);
+      }
+
       setText("");
     }
   };
@@ -51,6 +66,7 @@ function FeedbackForm() {
         <div className="input-group">
           <input
             type="text"
+            value={text}
             onChange={handleTextChange}
             placeholder="Enter your Feedback"
           />
